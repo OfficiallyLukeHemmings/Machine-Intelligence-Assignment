@@ -70,11 +70,11 @@ def get_orders_details(filename):
     return orders_list, int(N), int(T)
 
 
-def roulette_wheel_selection(sorted_population, survivor_count, T, N):
+def roulette_wheel_selection(sorted_population, max_pop_size, survivor_count, T, N):
     pop_fitness = 0
     candidate_possibilities = []
     
-    # Comparing total population fitness
+    # Total population fitness
     for candidate in sorted_population:
         pop_fitness += fitness(candidate, T, N)
     
@@ -83,7 +83,7 @@ def roulette_wheel_selection(sorted_population, survivor_count, T, N):
         candidate_possibilities.append(fitness(candidate, T, N) / pop_fitness)
         
     returned_population = []
-    for i in range(survivor_count):
+    for i in range(max_pop_size - survivor_count):
         # Selecting random candidate based on probabilities
         index = np.random.choice(len(candidate_possibilities), p=candidate_possibilities)
         returned_population.append(sorted_population[index])
@@ -109,7 +109,7 @@ def single_point_crossover(parent1, parent2):
     Is not a naive crossover approach - does not allow for duplication of orders.
     :returns: child1, child2
     """
-    crossover_index = random.randint(0, len(parent1))
+    crossover_index = random.randint(1, len(parent1))
     
     # 1st parent
     p1_left = parent1[0:crossover_index]
@@ -136,9 +136,9 @@ def single_point_crossover(parent1, parent2):
     for val in p1_right:
         if val not in child2:
             child2 = np.append(child2, val)
-        else: 
+        else:
             for val in p1_left:
-                if val not in child1:
+                if val not in child2:
                     child2 = np.append(child2, val)
                     break
     
@@ -249,16 +249,19 @@ def sort_by_fitness(population, T, N):
 
 
 def get_next_generation(sorted_population, max_pop_size, survivor_count, mutation_rate, T, N):    
-    # Using elitism_selection (best half) approach
+    # Using elitism_selection (best half) approach:
     # survivor_population = elitism_selection(sorted_population, max_pop_size, survivor_count)
+    
     ##########################################################################################
-    # Using Roulette Wheel Selection 
-    survivor_population = roulette_wheel_selection(sorted_population, survivor_count, T, N)
-    children = []
+    
+    # Using Roulette Wheel Selection:
+    survivor_population = roulette_wheel_selection(sorted_population, max_pop_size, survivor_count, T, N)
     
     # If survivor_population is odd, then duplicate the best fitting candidate and add to front of survivor population
     if len(survivor_population) % 2 == 1:
         survivor_population.insert(0, survivor_population[0])
+    
+    children = []
     
     # Crossover
     i = 0
@@ -283,7 +286,7 @@ def get_next_generation(sorted_population, max_pop_size, survivor_count, mutatio
     
     # Trimming returned population such that it fits max_pop_size
     return_population = survivor_population + children
-    return_population[:max_pop_size]
+    return_population = return_population[:max_pop_size]
     return return_population
 
 
@@ -344,17 +347,21 @@ def genetic_algorithm(orders, T, N, max_pop_size = 20, max_generations = 100, su
     return optimal_solution_found, optimal_fitness_score, generation_bests, generation_bests_score, generation_score_averages
 
 # -+- Main Function Calling-+-
-orders_list, N, T  = get_orders_details("testorders.txt")
+orders_list, N, T  = get_orders_details("orders.txt")
 
 optimal_solution_found, optimal_fitness_score, generation_bests, \
-    generation_bests_score, generation_score_average = genetic_algorithm(orders_list, T, N, 10, 25, 4, 0.1)
+    generation_bests_score, generation_score_average = genetic_algorithm(orders_list, T, N, 10, 30, 4, 0.1)
 solution_string = ""
 poster_count = 0
 
+# Output (# of Posters to print, and then the ordered order ID of each)
+print(str(len(optimal_solution_found)) + " posters to print")
 for poster in optimal_solution_found:
-    
-    solution_string += str(poster.id)
-    solution_string += "\n"
+    print(poster.id)
+
+# """
+# Testing / Inner workings prints statements below
+
 print(f"Best Solution:\n{solution_string} Fitness Score: {optimal_fitness_score}")
 print(f"Generation Bests:\n")
 
@@ -365,13 +372,4 @@ for i in range(len(generation_bests_score)):
     
     for poster in generation_bests[i]:
         print(poster.inks)
-        """
-for genscore in generation_bests_score:
-    print(genscore)
-    population_score_average
-    
-for genbest in generation_bests:
-    print("genbest:")
-    for poster in genbest:
-        print(poster.inks)
-    """
+# """
