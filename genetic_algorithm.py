@@ -2,10 +2,6 @@
 import numpy as np
 import random
 
-# import networkx as nx
-# from scipy.spatial.distance import pdist, squareform
-# import matplotlib.pyplot as plt
-
 # Function and CLass definitions
 class Print_order():
     def __init__(self, poster_order, fitness = 0):
