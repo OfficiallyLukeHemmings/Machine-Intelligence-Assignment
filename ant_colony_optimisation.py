@@ -71,26 +71,26 @@ def get_orders_details(filename):
     return orders_list, int(N), int(T)
 
 
-def tetrisify(candidate):
+def tetrisify(path):
     """
-    :param candidate:
+    :param path:
     :returns: List of Print_instance objects
     """
     
-    tetrified_candidate = []
+    tetrified_path = []
     # TODO: candidate begins as Print_instance list
     # Converting Poster list to Print_instance list
-    for poster in candidate:
-        tetrified_candidate.append(Print_instance(poster.inks))
+    for poster in path:
+        tetrified_path.append(Print_instance(poster.inks))
     
     # Checking for duplication of inks 
     # len(candidate)- 1 so that last poster does not check
-    for i in range(len(tetrified_candidate) - 1):
-        if i+1 < len(tetrified_candidate):
+    for i in range(len(tetrified_path) - 1):
+        if i+1 < len(tetrified_path):
             can_compress = True
-            for ink in tetrified_candidate[i].final_inks:
+            for ink in tetrified_path[i].final_inks:
                 # For ink in poster...
-                if ink in tetrified_candidate[i + 1].final_inks:
+                if ink in tetrified_path[i + 1].final_inks:
                     # If ink in next poster's list of inks...
                     can_compress = False
                     # break
@@ -99,15 +99,15 @@ def tetrisify(candidate):
             # to tetrisified_candidate list.
             if can_compress:
                 # If no duplicated inks...
-                combined_inks = tetrified_candidate[i].final_inks + tetrified_candidate[i + 1].final_inks
-                tetrified_candidate[i].final_inks = combined_inks
-                tetrified_candidate[i].poster_count += 1
+                combined_inks = tetrified_path[i].final_inks + tetrified_path[i + 1].final_inks
+                tetrified_path[i].final_inks = combined_inks
+                tetrified_path[i].poster_count += 1
                 
                 # Deleting 2nd print_instance, as it is combined
-                del tetrified_candidate[i + 1]
+                del tetrified_path[i + 1]
                 i -= 1
     
-    return tetrified_candidate
+    return tetrified_path
 
 def is_tetrifiable(i, j):
     """
@@ -123,12 +123,24 @@ def is_tetrifiable(i, j):
     
     return can_compress
 
-def fitness(candidate, T, N, success_income = 10, fail_cost = 5):
+
+def convert_path(path, orders_list):
+    """Given a path and the orders_list, return the path in Poster objects form"""
+    returned_path = []
+    
+    for index in path:
+        returned_path.append(orders_list[index])
+    
+    return returned_path
+
+def fitness(path, orders_list, T, N, success_income = 10, fail_cost = 5):
     """
-    Calculating a fitness score of a candidate solution, given the T constraint and N
+    Calculating a fitness score of a path, given the T constraint and N
     :returns (income - loss) score:
     """
-    tetrisified_candidate = tetrisify(candidate)
+    # [:len(path)-1] removes the return to first poster in the path
+    posters_path = convert_path(path, orders_list)[:len(path)-1]
+    tetrisified_path = tetrisify(posters_path)
     
     income = 0
     loss = 0
@@ -136,9 +148,9 @@ def fitness(candidate, T, N, success_income = 10, fail_cost = 5):
     # For each Print_instance unit of time, until time constraint T... 
     for i in range(T):
         try:
-            poster_count = tetrisified_candidate[i].poster_count
+            poster_count = tetrisified_path[i].poster_count
             
-            if len(tetrisified_candidate[i].final_inks) < N:
+            if len(tetrisified_path[i].final_inks) < N:
                 income += poster_count * success_income
             else:
                 loss += poster_count * fail_cost
@@ -269,32 +281,25 @@ class AntColonyOptimizer:
     def _remove_node(self, node):
         self.allowed_nodes.remove(node)
 
-    def _evaluate(self, paths, mode):
+    def _evaluate(self, orders_list, paths, mode):
         """
-        Evaluates the solutions of the ants by adding up the distances between nodes.
+        Evaluates the solutions of the ants by testing it against the fitness function.
         :param paths: solutions from the ants
         :param mode: max or min
-        :return: x and y coordinates of the best path as a tuple, the best path, and the best score
+        :return: The best path, and the best score
         """
-        scores = np.zeros(len(paths))
-        coordinates_i = []
-        coordinates_j = []
-        for index, path in enumerate(paths):
-            score = 0
-            coords_i = []
-            coords_j = []
-            for i in range(len(path) - 1):
-                coords_i.append(path[i])
-                coords_j.append(path[i + 1])
-                score += self.map[path[i], path[i + 1]]
-            scores[index] = score
-            coordinates_i.append(coords_i)
-            coordinates_j.append(coords_j)
+        scores = []
+        # Determine fitness score for each path
+        for i in range(len(paths)):
+            scores.append(fitness(paths[i], orders_list, T, N))
+        
+        # Handling mode (should be max for best fitness score)
         if mode == 'min':
             best = np.argmin(scores)
         elif mode == 'max':
             best = np.argmax(scores)
-        return (coordinates_i[best], coordinates_j[best]), paths[best], scores[best]
+            
+        return paths[best], scores[best]
 
     def _evaporation(self):
         """
@@ -303,16 +308,16 @@ class AntColonyOptimizer:
         self.pheromone_matrix *= (1 - self.rho)
         self.beta *= (1 - self.beta_decay)
 
-    def _reinforce(self, best_coords):
+    def _reinforce(self, best_path):
         """
         Increases the pheromone by some scalar for the best route.
-        :param best_coords: x and y (i and j) coordinates of the best route
+        :param best_path: best path
         """
-        i = best_coords[0]
-        j = best_coords[1]
+        i = best_path[0]
+        j = best_path[1]
         self.pheromone_matrix[i, j] += self.reinforce_pheromone
 
-    def fit(self, map_matrix, iterations=100, mode='min', early_stopping_count=20, verbose=False):
+    def fit(self, orders_list, map_matrix, iterations=100, mode='max', early_stopping_count=20, verbose=False):
         """
         Fits the ACO to a specific map.  This was designed with the Traveling Salesman problem in mind.
         :param map_matrix: Distance matrix or some other matrix with similar properties
@@ -349,7 +354,7 @@ class AntColonyOptimizer:
                 paths.append(path)
                 path = []
 
-            best_path_coords, best_path, best_score = self._evaluate(paths, mode)
+            best_path, best_score = self._evaluate(orders_list, paths, mode)
 
             if i == 0:
                 best_score_so_far = best_score
@@ -370,7 +375,7 @@ class AntColonyOptimizer:
 
             self.best_series.append(best_score)
             self._evaporation()
-            self._reinforce(best_path_coords)
+            self._reinforce(best_path)
             self._update_probabilities()
 
             if verbose: print("Best score at iteration {}: {}; overall: {} ({}s)"
@@ -421,22 +426,6 @@ class AntColonyOptimizer:
             plt.title("Ant Colony Optimization Results (best: {})".format(np.round(self.best, 2)))
             plt.show()
         
-    def plot_path(self, path, _CITIES):
-        pp,qq=getCoordinates(_CITIES)
-        x=[pp[i] for i in path]
-        y=[qq[i] for i in path]
-        #print(path) 
-        #print(x)
-        
-        plt.plot(x,y,'ro-')
-        for i in range(len(_CITIES)): 
-            label = f"{_CITIES[i][0]}"
-            plt.annotate(label, # this is the text
-                 (pp[i],qq[i]), # these are the coordinates to position the label
-                 textcoords="offset points", # how to position the text
-                 xytext=(0,5), # distance from text to points (x,y)
-                 ha='center')
-    
     def print_pheromone(self):
         data = self.pheromone_matrix
         fig, ax = plt.subplots()
@@ -447,7 +436,7 @@ class AntColonyOptimizer:
         return 0
 
 
-orders_list, N, T = get_orders_details("orders.txt")
+orders_list, N, T = get_orders_details("testorders.txt")
 _NODES = len(orders_list)
 
 fitness_matrix = np.zeros((_NODES, _NODES))
@@ -458,11 +447,10 @@ for i in range(_NODES):
 optimiser = AntColonyOptimizer(ants=15, rho=.2, intensification=2, alpha=0.6, beta=1,
                                beta_decay=0, exploitation=.1)
 
-best = optimiser.fit(fitness_matrix, 100)
+best = optimiser.fit(orders_list, fitness_matrix, 100)
 
 print(optimiser)
 
 print(optimiser.best_path)
 print(best)
 optimiser.plot()
-optimiser.plot_path(optimiser.best_path, _CITIES)
