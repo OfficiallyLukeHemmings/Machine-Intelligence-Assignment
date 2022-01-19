@@ -355,7 +355,7 @@ print(str(len(optimal_solution_found)) + " posters to print")
 for poster in optimal_solution_found:
     print(poster.id)
 
-# """
+"""
 # Testing / Inner workings prints statements below
 
 print(f"Best Solution:\n{solution_string} Fitness Score: {optimal_fitness_score}")
@@ -368,4 +368,4 @@ for i in range(len(generation_bests_score)):
     
     for poster in generation_bests[i]:
         print(poster.inks)
-# """
+"""

@@ -436,7 +436,7 @@ class AntColonyOptimizer:
         return 0
 
 
-orders_list, N, T = get_orders_details("testorders.txt")
+orders_list, N, T = get_orders_details("orders.txt")
 _NODES = len(orders_list)
 
 fitness_matrix = np.zeros((_NODES, _NODES))
