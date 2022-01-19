@@ -357,7 +357,7 @@ def genetic_algorithm(orders, T, N, max_pop_size = 20, max_generations = 100, su
 orders_list, N, T  = get_orders_details("orders.txt")
 
 optimal_solution_found, optimal_fitness_score, generation_bests, \
-    generation_bests_score, generation_score_average = genetic_algorithm(orders_list, T, N, 4, 30, 2, 0.1)
+    generation_bests_score, generation_score_average = genetic_algorithm(orders_list, T, N, 6, 20, 2, 0.1)
 solution_string = ""
 poster_count = 0
 
@@ -366,7 +366,7 @@ print(str(len(optimal_solution_found)) + " posters to print")
 for poster in optimal_solution_found:
     print(poster.id)
 
-"""
+#"""
 # Testing / Inner workings prints statements below
 
 print(f"Best Solution:\n{solution_string} Fitness Score: {optimal_fitness_score}")
@@ -379,4 +379,4 @@ for i in range(len(generation_bests_score)):
     
     for poster in generation_bests[i]:
         print(poster.inks)
-"""
+#"""
