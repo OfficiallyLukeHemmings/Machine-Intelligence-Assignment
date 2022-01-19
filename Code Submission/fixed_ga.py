@@ -174,29 +174,35 @@ def tetrisify(candidate):
         tetrified_candidate.append(Print_instance(poster.inks))
     
     # Checking for duplication of inks 
-    # len(candidate)- 1 so that last poster does not check
-    for i in range(len(tetrified_candidate) - 1):
-        if i+1 < len(tetrified_candidate):
-            can_compress = True
-            for ink in tetrified_candidate[i].final_inks:
-                # For ink in poster...
-                if ink in tetrified_candidate[i + 1].final_inks:
-                    # If ink in next poster's list of inks...
-                    can_compress = False
-                    # break
-
-            # Creating combined or individual Print_instance objects to append
-            # to tetrisified_candidate list.
-            if can_compress:
-                # If no duplicated inks...
-                combined_inks = tetrified_candidate[i].final_inks + tetrified_candidate[i + 1].final_inks
-                tetrified_candidate[i].final_inks = combined_inks
-                tetrified_candidate[i].poster_count += 1
+    for i in range(len(tetrified_candidate)):
+        can_compress = False
+        
+        j = i+1
+        level_count = 1
+        for x in range(len(tetrified_candidate[:i+1])):
+            if j < len(tetrified_candidate):
+            
+                all_inks_compress = True
                 
-                # Deleting 2nd print_instance, as it is combined
-                del tetrified_candidate[i + 1]
-                i -= 1
-    
+                for ink in tetrified_candidate[j].final_inks:
+                    if ink in tetrified_candidate[j-level_count].final_inks:
+                        # If ink is found then the two inks cannot be merged 
+                        all_inks_compress = False
+                if all_inks_compress:
+                    can_compress = True
+                    level_count += 1
+        if can_compress:
+            # If can_compress, combine the inks of once compressed
+            # This approach does allow for posters to 'slip past' posters
+            # e.g. poster 2 will merge with poster 0
+            # poster 0 = 1, 5
+            # poster 1 = 
+            combined_inks = tetrified_candidate[j].final_inks + tetrified_candidate[j - (level_count - 1)].final_inks
+            tetrified_candidate[j - (level_count - 1)].final_inks = combined_inks
+            tetrified_candidate[j - (level_count - 1)].poster_count += 1
+            
+            del tetrified_candidate[j]
+        
     return tetrified_candidate
 
 
@@ -342,10 +348,10 @@ def genetic_algorithm(orders, T, N, max_pop_size = 20, max_generations = 100, su
     return optimal_solution_found, optimal_fitness_score, generation_bests, generation_bests_score, generation_score_averages
 
 # -+- Main Function Calling-+-
-orders_list, N, T  = get_orders_details("testorders.txt")
+orders_list, N, T  = get_orders_details("orders.txt")
 
 optimal_solution_found, optimal_fitness_score, generation_bests, \
-    generation_bests_score, generation_score_average = genetic_algorithm(orders_list, T, N, 10, 30, 4, 0.1)
+    generation_bests_score, generation_score_average = genetic_algorithm(orders_list, T, N, 4, 30, 2, 0.1)
 solution_string = ""
 poster_count = 0
 
@@ -354,7 +360,7 @@ print(str(len(optimal_solution_found)) + " posters to print")
 for poster in optimal_solution_found:
     print(poster.id)
 
-"""
+#"""
 # Testing / Inner workings prints statements below
 
 print(f"Best Solution:\n{solution_string} Fitness Score: {optimal_fitness_score}")
@@ -367,4 +373,4 @@ for i in range(len(generation_bests_score)):
     
     for poster in generation_bests[i]:
         print(poster.inks)
-"""
+#"""

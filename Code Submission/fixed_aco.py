@@ -78,36 +78,36 @@ def tetrisify(path):
     """
     
     tetrified_path = []
-    # TODO: candidate begins as Print_instance list
     # Converting Poster list to Print_instance list
     for poster in path:
         tetrified_path.append(Print_instance(poster.inks))
     
     # Checking for duplication of inks 
-    # len(candidate)- 1 so that last poster does not check
-    for i in range(len(tetrified_path) - 1):
-        if i+1 < len(tetrified_path):
-            can_compress = True
-            for ink in tetrified_path[i].final_inks:
-                # For ink in poster...
-                if ink in tetrified_path[i + 1].final_inks:
-                    # If ink in next poster's list of inks...
-                    can_compress = False
-                    # break
-
-            # Creating combined or individual Print_instance objects to append
-            # to tetrisified_candidate list.
-            if can_compress:
-                # If no duplicated inks...
-                combined_inks = tetrified_path[i].final_inks + tetrified_path[i + 1].final_inks
-                tetrified_path[i].final_inks = combined_inks
-                tetrified_path[i].poster_count += 1
+    for i in range(len(tetrified_path)):
+        can_compress = False
+        
+        j = i+1
+        level_count = 1
+        for x in range(len(tetrified_path[:i+1])):
+            if j < len(tetrified_path):
+            
+                all_inks_compress = True
                 
-                # Deleting 2nd print_instance, as it is combined
-                del tetrified_path[i + 1]
-                i -= 1
-    
+                for ink in tetrified_path[j].final_inks:
+                    if ink in tetrified_path[j-level_count].final_inks:
+                        all_inks_compress = False
+                if all_inks_compress:
+                    can_compress = True
+                    level_count += 1
+        if can_compress:
+            combined_inks = tetrified_path[j].final_inks + tetrified_path[j - (level_count - 1)].final_inks
+            tetrified_path[j - (level_count - 1)].final_inks = combined_inks
+            tetrified_path[j - (level_count - 1)].poster_count += 1
+            
+            del tetrified_path[j]
+        
     return tetrified_path
+
 
 def is_tetrifiable(i, j):
     """
@@ -437,7 +437,8 @@ class AntColonyOptimizer:
         return 0
 
 
-orders_list, N, T = get_orders_details("example2.txt")
+# -+- Main Function Calling-+-
+orders_list, N, T = get_orders_details("orders.txt")
 _NODES = len(orders_list)
 
 fitness_matrix = np.zeros((_NODES, _NODES))
@@ -457,11 +458,10 @@ print(len(best_path), "posters to print")
 for poster_id in best_path:
     print(poster_id)
 
-"""
+
 # Testing / Performance prints statements below
 
 print(optimiser)
 print(optimiser.best_path[:-1])
 print(best)
 optimiser.plot()
-"""
