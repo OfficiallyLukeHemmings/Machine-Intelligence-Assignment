@@ -13,9 +13,9 @@ This file is currently set up to use the Roulette wheel selection method.
 In order to demonstrate the Elitism selection, comment out the line 265, and uncomment line 260.
 
 Test / Performance print statements are commented out at the bottom of the file.
-Simply # comment the """ quotemarks and run to see the Performance (e.g. average generation fitness scores)
+Simply # comment out the """ quotemarks and run to see the Performance (e.g. average generation fitness scores)
 
 -= ACO.py =-
 Code is adapted from the code in the labs (and the origin - https://github.com/johnberroa)
 Performance / plotting print statements are commented out at the bottom of the file.
-Simply # comment the """ quotemarks and run to see the Performance (e.g. iteration scores, etc) and the plotted performance.
+Simply # comment out the """ quotemarks and run to see the Performance (e.g. iteration scores, etc) and the plotted performance.

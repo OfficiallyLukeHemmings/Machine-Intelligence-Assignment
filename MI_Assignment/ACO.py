@@ -184,7 +184,7 @@ class AntColonyOptimizer:
     def __init__(self, ants, rho, intensification, alpha=1.0, beta=0.0, beta_decay=0,
                  exploitation=.1):
         """
-        Ant colony optimizer.  Traverses a graph and finds either the max or min distance between nodes.
+        Ant colony optimizer.  Traverses a graph and finds either the max or min edge value between nodes.
         :param ants: number of ants to traverse the graph
         :param ro: rate at which pheromone evaporates
         :param intensification: constant added to the best path
