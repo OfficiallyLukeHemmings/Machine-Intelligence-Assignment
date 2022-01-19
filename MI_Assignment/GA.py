@@ -257,12 +257,12 @@ def sort_by_fitness(population, T, N):
 
 def get_next_generation(sorted_population, max_pop_size, survivor_count, mutation_rate, T, N):    
     # Using elitism_selection (best half) approach:
-    survivor_population = elitism_selection(sorted_population, max_pop_size, survivor_count)
+    # survivor_population = elitism_selection(sorted_population, max_pop_size, survivor_count)
     
     ##########################################################################################
     
     # Using Roulette Wheel Selection:
-    # survivor_population = roulette_wheel_selection(sorted_population, max_pop_size, survivor_count, T, N)
+    survivor_population = roulette_wheel_selection(sorted_population, max_pop_size, survivor_count, T, N)
     
     # If survivor_population is odd, then duplicate the best fitting candidate and add to front of survivor population
     if len(survivor_population) % 2 == 1:
@@ -366,7 +366,7 @@ print(str(len(optimal_solution_found)) + " posters to print")
 for poster in optimal_solution_found:
     print(poster.id)
 
-#"""
+"""
 # Testing / Inner workings prints statements below
 
 print(f"Best Solution:\n{solution_string} Fitness Score: {optimal_fitness_score}")
@@ -379,4 +379,4 @@ for i in range(len(generation_bests_score)):
     
     for poster in generation_bests[i]:
         print(poster.inks)
-#"""
+"""
